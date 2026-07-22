@@ -1,0 +1,69 @@
+# 复制为 config.yaml 后填写。config.yaml 含密钥，不要提交到版本库。
+
+customer:
+  name: 示例客户              # 仅用于日志/告警标识
+
+sellfox:
+  base_url: https://openapi.sellfox.com
+  client_id: ""               # 赛狐开放平台申请
+  client_secret: ""
+
+# 双 WMS 客户（同一 base_url，不同 key/api_secret，账本隔离）
+# 也兼容旧写法：直接 key + api_secret（视为唯一 default 客户）
+wms:
+  base_url: ""                # 如 http://host:9999
+  profiles:
+    jinmao:                   # 名称任意，与 channels[].wms_profile 对应
+      key: 0
+      api_secret: ""
+    blackcat:
+      key: 0
+      api_secret: ""
+  default_profile: jinmao     # 渠道未标 wms_profile 时的兜底
+
+run:
+  poll_interval_sec: 300
+  purchase_date_days: 7
+  shop_whitelist: []          # 灰度：店铺ID列表；空 = 全部
+  hold_on_channel_mismatch: true
+  auto_apply_track_no: false  # 灰度期建议 false
+  keep_existing_channel: true
+  ship_confirm_mode: auto     # auto=有重量称重否则 quick / weighing / quick
+  weighing_fallback_quick: true
+  stale_new_days: 3           # NEW 不在 to_process 超过 N 天标 STALE，减日志噪音
+  # order_channel_names: []   # 非空则 step3 只对这些 config 渠道名下单
+  default_weight_unit: g
+  default_country: GB
+
+warehouse:
+  is_oversea: "1"
+
+# sellfox_provider_auth_detail_id 从"查询物流渠道列表"获取（logisticsType=1）
+# wms_profile 决定 step4 用哪把 WMS key 查运单
+channels:
+  - name: BLACKCAT-RM
+    sellfox_provider_auth_detail_id: 0
+    expected_carrier: RM
+    warehouse_id: 0
+    wms_profile: blackcat
+    countries: [GB]
+    max_weight_g: 2000
+    cost_per_kg: 0
+    base_cost: 0
+    enabled: true
+  - name: 昇新海外仓-RM
+    sellfox_provider_auth_detail_id: 0
+    expected_carrier: RM
+    warehouse_id: 0
+    wms_profile: jinmao
+    countries: [GB]
+    max_weight_g: 2000
+    cost_per_kg: 0
+    base_cost: 0
+    enabled: true
+
+sku_weights: {}
+  # JMCAT4DKQ: 350
+
+notify:
+  feishu_webhook: ""
